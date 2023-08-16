@@ -6,6 +6,8 @@ mod pixel;
 pub use image::Image;
 pub use pixel::Pixel;
 
+mod vec3;
+
 mod progress;
 
 mod const_generics {

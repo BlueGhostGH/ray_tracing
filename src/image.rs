@@ -2,7 +2,7 @@ use ::std::io::Write;
 
 use crate::{pixel, progress};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Image {
     stride: usize,
     buffer: Box<[pixel::Pixel]>,
@@ -51,8 +51,7 @@ impl Image {
                 log.flush()?;
             }
 
-            let pixel::Pixel { r, g, b } = pixel;
-            out.write_fmt(format_args!("{r} {g} {b}\n")).unwrap();
+            pixel.write_to(out)?;
         }
 
         log.write_fmt(format_args!("\r{:width$}", "Done", width = 20 + 2))?;
