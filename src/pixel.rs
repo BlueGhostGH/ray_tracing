@@ -1,16 +1,16 @@
-use crate::vec3;
-
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub struct Pixel {
-    pub(crate) inner: vec3::Vec3<f64>,
+pub(crate) struct Pixel {
+    pub(crate) inner: Color,
 }
+
+pub(crate) type Color = crate::Vec3;
 
 impl Pixel {
     pub(crate) fn write_to<W>(self, writer: &mut W) -> ::std::io::Result<()>
     where
         W: ::std::io::Write,
     {
-        let vec3::Vec3 {
+        let Color {
             components: [r, g, b],
         } = self.inner;
 
@@ -27,9 +27,15 @@ impl Pixel {
 impl From<(f64, f64, f64)> for Pixel {
     fn from((r, g, b): (f64, f64, f64)) -> Self {
         Pixel {
-            inner: vec3::Vec3 {
+            inner: Color {
                 components: [r, g, b],
             },
         }
+    }
+}
+
+impl From<Color> for Pixel {
+    fn from(color: Color) -> Self {
+        Pixel { inner: color }
     }
 }

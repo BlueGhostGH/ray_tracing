@@ -10,7 +10,7 @@ pub struct Image {
 }
 
 impl Image {
-    pub fn new(width: usize, height: usize) -> Self {
+    pub(crate) fn new(width: usize, height: usize) -> Self {
         let mut buffer = Vec::with_capacity(width * height);
         buffer.resize_with(buffer.capacity(), pixel::Pixel::default);
 
@@ -20,17 +20,21 @@ impl Image {
         }
     }
 
-    pub fn generate<G>(&mut self, generator: G)
+    pub(crate) fn generate<G>(&mut self, generator: G)
     where
-        G: Fn(usize, usize) -> pixel::Pixel,
+        G: Fn(usize, usize) -> pixel::Color,
     {
         self.buffer
             .iter_mut()
             .enumerate()
-            .for_each(|(index, pixel)| *pixel = generator(index % self.stride, index / self.stride))
+            .for_each(|(index, pixel)| {
+                let color = generator(index % self.stride, index / self.stride);
+
+                *pixel = pixel::Pixel::from(color);
+            })
     }
 
-    pub fn write_to_with_progress<W, L, const PROGRESS_LEN: usize>(
+    pub(crate) fn write_to_with_progress<W, L, const PROGRESS_LEN: usize>(
         &self,
         writer: &mut W,
         logger: &mut L,
@@ -70,11 +74,11 @@ impl Image {
         Ok(())
     }
 
-    pub fn width(&self) -> usize {
+    fn width(&self) -> usize {
         self.stride
     }
 
-    pub fn height(&self) -> usize {
+    fn height(&self) -> usize {
         self.buffer.len() / self.stride
     }
 
