@@ -10,7 +10,7 @@ fn main() -> ::std::io::Result<()> {
         ray_tracing::Pixel::from((r, g, b))
     });
 
-    image.output(
+    image.write_to_with_progress::<::std::io::StdoutLock<'_>, ::std::io::StderrLock<'_>, 20>(
         &mut ::std::io::stdout().lock(),
         &mut ::std::io::stderr().lock(),
     )?;

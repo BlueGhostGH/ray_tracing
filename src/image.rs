@@ -1,6 +1,7 @@
-use ::std::io::Write;
-
-use crate::{pixel, progress};
+use crate::{
+    const_generics::{Assert, True},
+    pixel, progress,
+};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Image {
@@ -29,32 +30,42 @@ impl Image {
             .for_each(|(index, pixel)| *pixel = generator(index % self.stride, index / self.stride))
     }
 
-    pub fn output<O, L>(&self, out: &mut O, log: &mut L) -> ::std::io::Result<()>
+    pub fn write_to_with_progress<W, L, const PROGRESS_LEN: usize>(
+        &self,
+        writer: &mut W,
+        logger: &mut L,
+    ) -> ::std::io::Result<()>
     where
-        O: Write,
-        L: Write,
+        W: ::std::io::Write,
+        L: ::std::io::Write,
+
+        Assert<{ PROGRESS_LEN > 0 }>: True,
+        [(); PROGRESS_LEN + 3]:,
     {
         let (width, height) = (self.width(), self.height());
         let total = width * height;
 
-        out.write_fmt(format_args!("P3\n{width} {height}\n255\n"))
-            .unwrap();
+        writer.write_fmt(format_args!("P3\n{width} {height}\n255\n"))?;
 
-        let mut progress = progress::Progress::<20>::new();
+        let mut progress = progress::Progress::<PROGRESS_LEN>::new();
         for (index, pixel) in self.pixels().iter().enumerate() {
-            let completion = ((index as f64 / total as f64) * 20f64).trunc() as usize;
+            let completion = ((index as f64 / total as f64) * PROGRESS_LEN as f64).trunc() as usize;
 
             if completion > progress.status {
                 progress.advance();
 
-                log.write(&progress.bar_cr())?;
-                log.flush()?;
+                logger.write(&progress.bar_cr())?;
+                logger.flush()?;
             }
 
-            pixel.write_to(out)?;
+            pixel.write_to(writer)?;
         }
 
-        log.write_fmt(format_args!("\r{:width$}", "Done", width = 20 + 2))?;
+        logger.write_fmt(format_args!(
+            "\r{:width$}",
+            "Done",
+            width = PROGRESS_LEN + 2
+        ))?;
 
         Ok(())
     }

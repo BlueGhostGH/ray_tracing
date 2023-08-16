@@ -11,9 +11,9 @@ mod vec3;
 mod progress;
 
 mod const_generics {
-    pub(crate) struct Assert<const CHECK: bool>;
+    pub struct Assert<const CHECK: bool>;
 
-    pub(crate) trait True {}
+    pub trait True {}
 
     impl True for Assert<true> {}
 }
